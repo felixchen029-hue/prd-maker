@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/prd-maker/visual-spec.schema.json",
+  "title": "PRD Maker Visual Spec",
+  "type": "object",
+  "required": ["id", "type", "title"],
+  "properties": {
+    "id": {"type": "string", "pattern": "^[a-z0-9-]+$"},
+    "type": {"enum": ["flow", "swimlane", "matrix", "bar", "line", "funnel", "timeline"]},
+    "title": {"type": "string"},
+    "subtitle": {"type": "string"},
+    "width": {"type": "integer", "minimum": 640, "maximum": 1600},
+    "nodes": {"type": "array", "items": {"type": "object"}},
+    "edges": {"type": "array", "items": {"type": "object"}},
+    "lanes": {"type": "array", "items": {"type": "object"}},
+    "columns": {"type": "array", "items": {"type": "string"}},
+    "rows": {"type": "array", "items": {"type": "object"}},
+    "categories": {"type": "array", "items": {"type": "string"}},
+    "series": {"type": "array", "items": {"type": "object"}},
+    "stages": {"type": "array", "items": {"type": "object"}},
+    "events": {"type": "array", "items": {"type": "object"}},
+    "source_note": {"type": "string"}
+  },
+  "additionalProperties": true
+}

@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/prd-maker/prd-brief.schema.json",
+  "title": "PRD Maker Brief",
+  "type": "object",
+  "required": ["document", "scope", "framework", "sources", "output"],
+  "properties": {
+    "document": {
+      "type": "object",
+      "required": ["type", "title", "audience", "decision"],
+      "properties": {
+        "type": {"enum": ["prd", "summary", "report"]},
+        "title": {"type": "string", "minLength": 1},
+        "audience": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+        "decision": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": true
+    },
+    "scope": {
+      "type": "object",
+      "required": ["industry", "focus"],
+      "properties": {
+        "industry": {"const": "cloud-computing"},
+        "focus": {"type": "string", "minLength": 1},
+        "in_scope": {"type": "array", "items": {"type": "string"}},
+        "out_of_scope": {"type": "array", "items": {"type": "string"}},
+        "region": {"type": "string"},
+        "time_range": {"type": "string"}
+      },
+      "additionalProperties": true
+    },
+    "framework": {
+      "type": "object",
+      "required": ["sections"],
+      "properties": {
+        "preset": {"enum": ["feature-prd", "strategy-prd", "growth-experiment", "platform-capability", "internal-tool", "summary", "report", "custom"]},
+        "sections": {
+          "type": "object",
+          "additionalProperties": {"enum": ["skip", "brief", "standard", "deep"]}
+        },
+        "custom_order": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": true
+    },
+    "sources": {
+      "type": "object",
+      "required": ["web", "llm_wiki", "citations_required"],
+      "properties": {
+        "user_files": {"type": "array", "items": {"type": "string"}},
+        "web": {"type": "boolean"},
+        "llm_wiki": {"enum": ["off", "auto", "required"]},
+        "citations_required": {"type": "boolean"}
+      },
+      "additionalProperties": true
+    },
+    "visuals": {
+      "type": "object",
+      "properties": {
+        "theme": {"type": "string"},
+        "include": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": true
+    },
+    "output": {
+      "type": "object",
+      "required": ["format", "language"],
+      "properties": {
+        "format": {"const": "markdown"},
+        "language": {"enum": ["zh-CN", "en-US"]},
+        "directory": {"type": "string"},
+        "prepare_feishu_bundle": {"type": "boolean"}
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

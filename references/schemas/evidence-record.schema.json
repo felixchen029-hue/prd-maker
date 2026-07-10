@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/prd-maker/evidence-record.schema.json",
+  "title": "Evidence Record",
+  "type": "object",
+  "required": ["id", "provider", "source_type", "title", "claim", "retrieved_at", "location"],
+  "properties": {
+    "id": {"type": "string", "minLength": 1},
+    "provider": {"enum": ["user-files", "web", "llm-wiki", "manual"]},
+    "source_type": {"enum": ["primary", "secondary", "community", "internal", "derived"]},
+    "title": {"type": "string"},
+    "claim": {"type": "string"},
+    "excerpt": {"type": "string"},
+    "location": {"type": "string"},
+    "published_at": {"type": ["string", "null"]},
+    "retrieved_at": {"type": "string"},
+    "confidence": {"enum": ["low", "medium", "high"]},
+    "tags": {"type": "array", "items": {"type": "string"}},
+    "metadata": {"type": "object"}
+  },
+  "additionalProperties": true
+}

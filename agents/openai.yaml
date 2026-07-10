@@ -1,0 +1,7 @@
+interface:
+  display_name: "云计算 PRD Maker"
+  short_description: "生成云计算 IaaS PRD、总结和汇报，并输出统一 SVG 图表"
+  default_prompt: "使用 $prd-maker 基于我的材料生成一份云计算 IaaS PRD。"
+
+policy:
+  allow_implicit_invocation: true

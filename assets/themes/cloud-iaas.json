@@ -1,0 +1,17 @@
+{
+  "background": "#F7F9FC",
+  "surface": "#FFFFFF",
+  "surface_alt": "#F1F5F9",
+  "text": "#172033",
+  "muted": "#60708A",
+  "accent": "#2563EB",
+  "accent_soft": "#E8F0FF",
+  "accent2": "#0891B2",
+  "border": "#B9C6D8",
+  "grid": "#DCE4EF",
+  "success": "#DCFCE7",
+  "warning": "#FEF3C7",
+  "danger": "#FEE2E2",
+  "series": ["#2563EB", "#0891B2", "#7C3AED", "#D97706", "#059669", "#DC2626"],
+  "font_family": "Inter, PingFang SC, Microsoft YaHei, Noto Sans CJK SC, sans-serif"
+}

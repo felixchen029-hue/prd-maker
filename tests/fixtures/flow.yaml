@@ -1,0 +1,22 @@
+id: instance-lifecycle
+type: flow
+title: 实例批量变配流程
+subtitle: 失败实例保持原规格并返回逐实例结果
+nodes:
+  - id: submit
+    label: 提交变配任务
+  - id: validate
+    label: 校验状态、配额和库存
+  - id: execute
+    label: 按实例执行变配
+  - id: finish
+    label: 返回成功与失败明细
+edges:
+  - from: submit
+    to: validate
+  - from: validate
+    to: execute
+    condition: 校验通过
+  - from: execute
+    to: finish
+source_note: 产品方案草案

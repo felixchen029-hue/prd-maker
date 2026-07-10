@@ -1,0 +1,3 @@
+{"provider":"web","title":"实例文档","url":"https://example.invalid/instance","summary":"支持实例启动和停止。","source_type":"primary","confidence":"high"}
+{"provider":"llm-wiki","title":"内部知识摘要","summary":"客户关注批量操作失败明细。","confidence":"high"}
+{"provider":"web","title":"实例文档","url":"https://example.invalid/instance","summary":"支持实例启动和停止。","source_type":"primary","confidence":"high"}

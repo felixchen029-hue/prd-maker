@@ -1,0 +1,37 @@
+document:
+  type: prd
+  title: 云服务器实例批量变配
+  audience:
+    - 产品负责人
+    - 计算平台负责人
+  decision: 确认 V1 范围和验收口径
+scope:
+  industry: cloud-computing
+  focus: iaas-compute-instance
+  in_scope:
+    - 批量升降配
+  out_of_scope:
+    - 裸金属实例
+  region: 中国
+  time_range: 2026
+framework:
+  preset: feature-prd
+  sections:
+    market_research: brief
+    competitor_analysis: standard
+    requirement_analysis: deep
+    solution_design: deep
+    acceptance: deep
+sources:
+  user_files: []
+  web: true
+  llm_wiki: auto
+  citations_required: true
+visuals:
+  theme: cloud-iaas
+  include:
+    - instance-lifecycle
+output:
+  format: markdown
+  language: zh-CN
+  prepare_feishu_bundle: true
