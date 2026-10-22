@@ -1,0 +1,26 @@
+{
+  "templateVersion": "3.1.0",
+  "kind": "portfolio",
+  "interactiveHTML": true,
+  "engineVersion": "echarts-5.6.0",
+  "width": 1100,
+  "height": 640,
+  "svgSHA256": "7d530b6264d37e381fce767e431822ffd10961d54e041d3ca6e78abf64635b6b",
+  "records": 365,
+  "industries": 0,
+  "totals": {
+    "count": 365,
+    "value": 83790.29,
+    "basis": 65000,
+    "maxDrawdown": -0.04014584565808932
+  },
+  "warnings": [
+    "演示数据，非实际资产或业绩记录"
+  ],
+  "outputs": [
+    "/Users/felix/Documents/prd-maker/outputs/report-charts-motion/portfolio.svg",
+    "/Users/felix/Documents/prd-maker/outputs/report-charts-motion/portfolio.project.json",
+    "/Users/felix/Documents/prd-maker/outputs/report-charts-motion/portfolio.png",
+    "/Users/felix/Documents/prd-maker/outputs/report-charts-motion/portfolio.html"
+  ]
+}

@@ -1,0 +1,4 @@
+interface:
+  display_name: "汇报图表"
+  short_description: "生成汇报与Portfolio图表，支持动效HTML、鼠标联动及SVG/PNG导出"
+  default_prompt: "使用 $report-charts 根据提供的数据生成图表，交付带鼠标交互的动效 HTML、SVG 和 PNG，并保留可编辑项目。"

@@ -1,0 +1,36 @@
+import assert from 'node:assert/strict';
+import {createRequire} from 'node:module';
+const require=createRequire(import.meta.url),P=require('../assets/portfolio.cjs'),R=require('../assets/report-charts.cjs');
+const input={chart:'portfolio',currency:'USD',data:[{date:'2026-01-01',value:100,basis:80},{date:'2026-01-02',value:80,basis:90},{date:'2026-01-03',value:120,basis:90},{date:'2026-01-20',value:90,basis:100}]};
+const normalized=P.normalize(input),stats=P.statistics(normalized.points);
+assert.deepEqual(stats.map(r=>r.peak),[100,100,120,120]);
+assert.ok(Math.abs(stats[1].drawdown+.2)<1e-12);
+assert.equal(stats[3].drawdown,-.25);
+assert.equal(stats[3].pnl,-10);
+assert.ok(Math.abs(stats[3].pnlRatio+.1)<1e-12);
+const week=P.view({...normalized,settings:{...normalized.settings,range:'1W'}});
+assert.equal(week.rows.length,1);
+assert.equal(week.last.drawdown,-.25,'Window selection must preserve peaks outside the selected window');
+assert.equal(week.maxDrawdown,-.25);
+assert.equal(P.nearest(stats,stats[0].time-1),0);
+assert.equal(P.nearest(stats,stats[2].time+1),2);
+assert.equal(P.nearest(stats,stats.at(-1).time+1),3);
+const zero=P.statistics(P.normalize({...input,data:[{date:'2026-01-01',value:0,basis:0},{date:'2026-01-02',value:0,basis:0}]}).points);
+assert.equal(zero[0].drawdown,0);assert.equal(zero[0].pnlRatio,null);
+assert.throws(()=>P.normalize({...input,data:[...input.data,input.data[0]]}));
+assert.throws(()=>P.normalize({...input,data:[{date:'2026-02-30',value:100,basis:50},input.data[0]]}));
+assert.throws(()=>P.normalize({...input,data:[{date:'2026-01-01',value:-1,basis:50},input.data[2]]}));
+assert.throws(()=>P.normalize({...input,data:[{date:'2026-01-01',value:null,basis:50},input.data[2]]}));
+assert.throws(()=>P.normalize({...input,style:{range:'random'}}));
+const march=Date.parse('2026-03-31T00:00:00Z');
+assert.equal(new Date(P.cutoff(march,'1M')).toISOString().slice(0,10),'2026-02-28');
+for(const theme of ['dark','light'])for(const range of P.RANGES){
+ const a=P.render({...input,style:{range,theme}}),b=P.render({...input,style:{range,theme}});
+ assert.equal(a.svg,b.svg);assert.equal(P.render(a.project).svg,a.svg);
+ assert.ok(!/NaN|Infinity|foreignObject|<image\b/.test(a.svg));
+ assert.equal(a.option.xAxis.length,2);assert.deepEqual(a.option.axisPointer.link,[{xAxisIndex:[0,1]}]);
+}
+const financial=require('../assets/example.request.json');
+const live=R.render({...financial,style:{htmlMode:'live',motion:'auto'}}),print=R.render({...financial,style:{htmlMode:'static',motion:'off'}});
+assert.equal(live.svg,print.svg,'HTML interaction settings must never change deterministic SVG export');
+console.log(JSON.stringify({status:'passed',portfolio:'validation, UTC dates, rolling peaks, zero basis, range windows, nearest point, linked axes, deterministic SVG',financial:'interactive/static exports identical'}));

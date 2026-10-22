@@ -1,0 +1,8 @@
+{
+  "name": "report-charts-skill",
+  "version": "3.1.0",
+  "private": true,
+  "description": "Animated offline chart workbench, interactive Portfolio and deterministic SVG exports",
+  "engines": {"node": ">=20"},
+  "optionalDependencies": {"sharp": "0.35.5"}
+}

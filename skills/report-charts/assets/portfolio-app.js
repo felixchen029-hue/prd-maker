@@ -1,0 +1,52 @@
+(function(){
+'use strict';
+const P=window.ReportPortfolio;
+const esc=x=>String(x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function standalone(project){
+ const scripts=['echarts','portfolio-engine','portfolio-app'].map(name=>{const el=document.querySelector('script[data-runtime="'+name+'"]');if(!el)throw Error('缺少离线运行资源：'+name);return '<script data-runtime="'+name+'">'+el.textContent.replace(/<\/script/gi,'<\\/script')+'</script>';}).join('\n');
+ const css=document.querySelector('style[data-style="portfolio"]').textContent;
+ return '<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+esc(project.title)+' · 交互图表</title><style data-style="portfolio">'+css+'</style></head><body class="portfolio-page" data-theme="'+project.settings.theme+'"><main id="portfolio-root"></main><script id="portfolio-data" type="application/json">'+JSON.stringify(project).replace(/</g,'\\u003c')+'</script>'+scripts+'<script>window.PortfolioApp.mount(document.getElementById("portfolio-root"),JSON.parse(document.getElementById("portfolio-data").textContent));</script></body></html>';
+}
+function mount(root,input){
+ let project=P.normalize(input),model,instance,raf=0,index=0,disposed=false,animatedValue=null;
+ const media=matchMedia('(prefers-reduced-motion: reduce)');
+ root.innerHTML='<section class="rcp"><div class="rcp-tools"><div><button data-action="open">打开项目</button><button data-action="save">保存项目</button></div><div><button data-action="theme">切换明暗</button><button data-action="replay">重播动效</button><button data-action="motion" aria-pressed="false">关闭动效</button><button data-action="svg">SVG</button><button data-action="png">PNG</button><button data-action="html">保存动效 HTML</button></div></div><div class="rcp-card"><div class="rcp-header"><div class="rcp-name"></div><div class="rcp-numbers"><span class="rcp-value"></span><span class="rcp-pnl"></span></div><div class="rcp-meta"><span data-readout="date"></span><span>成本 <b data-readout="basis"></b></span><span>回撤 <b class="rcp-dd" data-readout="drawdown"></b></span><span>区间最大回撤 <b class="rcp-dd" data-readout="maxdd"></b></span></div></div><div class="rcp-ranges" role="group" aria-label="时间范围">'+P.RANGES.map(r=>'<button data-range="'+r+'" aria-pressed="false">'+r+'</button>').join('')+'</div><div class="rcp-plot" tabindex="0" role="group" aria-label="资产价值与回撤图；使用左右方向键逐日查看，Home、End跳转首尾"></div><div class="rcp-interact"><label>选择观测日期 <span class="rcp-reduced"></span></label><input class="rcp-scrub" type="range" min="0" aria-label="选择观测日期"></div></div><p class="rcp-hint"></p><div class="rcp-status" role="status" aria-live="polite"></div><details class="rcp-data"><summary>数据与计算口径</summary><p class="rcp-definition">差额 = 资产价值 − 成本基准；比例为相对成本差额，不是时间加权或资金加权收益率。回撤 = 当前价值 ÷ 完整输入历史截至当日的峰值 − 1；切换范围不会重置峰值。区间最大回撤取当前窗口中最小回撤。日期缺口按真实时间间隔显示。</p><div class="rcp-table-wrap"></div></details><input class="rcp-file" type="file" accept=".json" hidden></section>';
+ const card=root.querySelector('.rcp'),plot=root.querySelector('.rcp-plot'),q=selector=>root.querySelector(selector);
+ const reduced=()=>media.matches||project.settings.motion==='off';
+
+ function status(text){q('.rcp-status').textContent=text;}
+ function animateNumber(value){cancelAnimationFrame(raf);const from=animatedValue??value;if(reduced()||Math.abs(from-value)<.001){animatedValue=value;q('.rcp-value').textContent=P.money(value,project.currency);return;}const begin=performance.now();function tick(now){if(disposed)return;const t=Math.min(1,(now-begin)/160);animatedValue=from+(value-from)*(1-Math.pow(1-t,3));q('.rcp-value').textContent=P.money(animatedValue,project.currency);if(t<1)raf=requestAnimationFrame(tick);}raf=requestAnimationFrame(tick);}
+ function select(i,announce=false){index=Math.max(0,Math.min(model.rows.length-1,i));const r=model.rows[index];animateNumber(r.value);q('.rcp-pnl').textContent=(r.pnl>=0?'+':'')+P.money(r.pnl,project.currency)+' ('+P.percent(r.pnlRatio)+')';q('.rcp-pnl').style.color=r.pnl>=0?'var(--p-up)':'var(--p-down)';for(const [name,value] of Object.entries({date:r.date,basis:P.money(r.basis,project.currency),drawdown:P.percent(r.drawdown),maxdd:P.percent(model.maxDrawdown)}))q('[data-readout="'+name+'"]').textContent=value;q('.rcp-scrub').value=index;q('.rcp-scrub').setAttribute('aria-valuetext',r.date+'，资产价值 '+P.money(r.value,project.currency,false)+'，回撤 '+P.percent(r.drawdown));if(announce)status(r.date+' · '+P.money(r.value,project.currency,false)+' · 回撤 '+P.percent(r.drawdown));}
+ function point(i){select(i,true);instance.dispatchAction({type:'showTip',seriesIndex:0,dataIndex:index});}
+ function table(){if(!model)return;q('.rcp-table-wrap').innerHTML='<table><thead><tr><th>日期</th><th>资产价值（'+esc(project.currency)+'）</th><th>成本基准</th><th>历史峰值回撤</th></tr></thead><tbody>'+model.rows.map(r=>'<tr><td>'+r.date+'</td><td>'+r.value.toFixed(2)+'</td><td>'+r.basis.toFixed(2)+'</td><td>'+P.percent(r.drawdown)+'</td></tr>').join('')+'</tbody></table>';}
+ function render(replay=false){
+  if(disposed)return;model=P.optionFor(project);const option=model.option;card.dataset.theme=project.settings.theme;
+  if(root.id==='portfolio-root')document.body.dataset.theme=project.settings.theme;
+  q('.rcp-name').innerHTML=esc(project.title)+(project.source.simulated?'<span class="rcp-demo">演示数据</span>':'');
+  root.querySelectorAll('[data-range]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.range===project.settings.range)));
+  q('[data-action=motion]').textContent=project.settings.motion==='off'?'开启动效':'关闭动效';q('[data-action=motion]').setAttribute('aria-pressed',String(project.settings.motion==='off'));
+  q('.rcp-reduced').textContent=media.matches?'· 已跟随系统减少动效':'';
+  q('.rcp-scrub').max=model.rows.length-1;
+  q('.rcp-hint').textContent=(project.source.simulated?'演示数据，非实际资产或业绩记录。':'')+'移动鼠标、触屏点按或拖动日期滑杆查看历史；方向键逐点查看。来源：'+project.source.file+'。';
+  option.graphic=option.graphic.filter(g=>String(g.style?.text||'').startsWith('DRAWDOWN'));
+  option.animation=!reduced();option.animationDuration=850;option.animationDurationUpdate=400;option.animationEasing='cubicOut';option.animationEasingUpdate='cubicOut';
+  const narrow=plot.clientWidth<760,top=narrow?172:132,height=Math.max(480,Math.min(700,project.settings.height));plot.style.height=(top+height*.55+26+54)+'px';
+  option.xAxis.forEach(axis=>{axis.splitNumber=narrow?3:6;axis.axisLabel.hideOverlap=true;});
+  option.grid=[{left:narrow?18:32,right:narrow?60:76,top,height:height*.40},{left:narrow?18:32,right:narrow?60:76,top:top+height*.40+26,height:height*.15}];
+  if(option.graphic[0])option.graphic[0].top=top+height*.40+9;
+  if(replay&&instance){instance.dispose();instance=null;}
+  if(!instance){instance=echarts.init(plot,null,{renderer:'svg'});instance.on('updateAxisPointer',event=>{const axis=event.axesInfo?.find(a=>a.axisDim==='x');if(axis&&Number.isFinite(Number(axis.value)))select(P.nearest(model.rows,Number(axis.value)));});instance.getZr().on('globalout',()=>select(model.rows.length-1));}
+  instance.resize();instance.setOption(option,{notMerge:false});select(model.rows.length-1);if(q('.rcp-data').open)table();
+ }
+ function download(content,name,mime){const href=typeof content==='string'&&content.startsWith('data:')?content:'data:'+mime+','+encodeURIComponent(content);const a=document.createElement('a');a.href=href;a.download=name;a.click();const statusEl=q('.rcp-status');statusEl.replaceChildren();const link=document.createElement('a');link.href=href;link.download=name;link.textContent='下载 '+name;statusEl.append(link);}
+ root.addEventListener('click',async event=>{const range=event.target.closest('[data-range]');if(range){project.settings.range=range.dataset.range;render();return;}const button=event.target.closest('[data-action]');if(!button)return;try{const action=button.dataset.action;if(action==='theme'){project.settings.theme=project.settings.theme==='dark'?'light':'dark';render();}else if(action==='motion'){project.settings.motion=project.settings.motion==='off'?'auto':'off';render();}else if(action==='replay'){if(reduced())status('当前已减少动效；仍可移动指针查看历史数据');render(true);}else if(action==='open')q('.rcp-file').click();else if(action==='save')download(JSON.stringify(project,null,2),'portfolio.project.json','application/json');else if(action==='html')download(standalone(project),'portfolio-interactive.html','text/html;charset=utf-8');else if(action==='svg')download(P.render(project).svg,'portfolio.svg','image/svg+xml');else if(action==='png'){const result=P.render(project),image=new Image();image.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(result.svg);await new Promise((resolve,reject)=>{image.onload=resolve;image.onerror=()=>reject(Error('PNG 转换失败'));});const canvas=document.createElement('canvas');canvas.width=result.width*2;canvas.height=result.height*2;const context=canvas.getContext('2d');context.scale(2,2);context.drawImage(image,0,0);download(canvas.toDataURL('image/png'),'portfolio.png','image/png');}}catch(error){status(error.message);}});
+ q('.rcp-file').onchange=async event=>{const file=event.target.files[0];if(!file)return;try{const next=P.normalize(JSON.parse(await file.text()));project=next;render(true);status('已打开 '+file.name);}catch(error){status('打开失败：'+error.message);}event.target.value='';};
+ q('.rcp-scrub').addEventListener('input',event=>point(Number(event.target.value)));
+ plot.addEventListener('keydown',event=>{if(!['ArrowLeft','ArrowRight','Home','End','Escape'].includes(event.key))return;event.preventDefault();if(event.key==='Escape'){instance.dispatchAction({type:'hideTip'});select(model.rows.length-1,true);}else point(event.key==='Home'?0:event.key==='End'?model.rows.length-1:index+(event.key==='ArrowRight'?1:-1));});
+ q('.rcp-data').addEventListener('toggle',()=>{if(q('.rcp-data').open)table();});
+ let lastWidth=plot.clientWidth;const observer=new ResizeObserver(()=>{if(disposed)return;const width=plot.clientWidth;if(width&&Math.abs(width-lastWidth)>1){lastWidth=width;render();}});observer.observe(plot);
+ const preferenceChanged=()=>render();media.addEventListener('change',preferenceChanged);render();
+ return {dispose(){disposed=true;cancelAnimationFrame(raf);observer.disconnect();media.removeEventListener('change',preferenceChanged);instance?.dispose();root.replaceChildren();},project:()=>JSON.parse(JSON.stringify(project))};
+}
+window.PortfolioApp={mount,standalone};
+})();

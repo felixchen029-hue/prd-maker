@@ -1,0 +1,15 @@
+{
+  "chart": "stack",
+  "theme": "vivid",
+  "title": "行业收入结构（模拟数据）",
+  "period": "示例期间",
+  "source": {"file": "模拟数据"},
+  "style": {"orientation": "vertical", "fill": "gradient", "showTable": true, "width": 1100},
+  "data": [
+    {"industry": "软件服务", "revenue": 12000000, "cost": 4200000, "profit": 7500000},
+    {"industry": "智能制造", "revenue": 9500000, "cost": 3900000, "profit": 5400000},
+    {"industry": "零售消费", "revenue": 7800000, "cost": 3000000, "profit": 4650000},
+    {"industry": "交通运输", "revenue": 6100000, "cost": 2450000, "profit": 3550000},
+    {"industry": "数字教育", "revenue": 4800000, "cost": 1600000, "profit": 3130000}
+  ]
+}
